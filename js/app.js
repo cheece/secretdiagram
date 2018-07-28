@@ -630,7 +630,7 @@ function setupMobile(){
                 if(v_x<0)
                     v_x=0;
                 if(v_x>canvas.width)
-                    v_x=canvas.woidth;
+                    v_x=canvas.width;
                 if(v_y<0)
                     v_y=0;
                 if(v_y>canvas.height)
