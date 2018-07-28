@@ -574,7 +574,7 @@ function setupMobile(){
     var ss=1;
     var sz;
     var pang=false;
-    
+    var lasttt=0;
     
     canvas.addEventListener('touchstart',function(e){
         e.preventDefault();
@@ -584,7 +584,7 @@ function setupMobile(){
             if(lookm){
                 lx = e.touches[0].clientX;
                 ly = e.touches[0].clientY;
-                
+                lasttt = new Date().getTime();
             }else mousedown((e.touches[0].clientX-view_x)/view_zoom,(e.touches[0].clientY-view_y)/view_zoom);
         }else{
             if(e.touches.length==2){
@@ -647,10 +647,22 @@ function setupMobile(){
     canvas.addEventListener('touchend',function(e){
         e.preventDefault();
         if(!pang){
-            if(e.touches.length==0 && mode!=SELECT){
-              //  console.log(e.touches[0]);
-                if(!lookm)mouseup();
-            }           
+            if(lookm){
+                if(new Date().getTime() -lasttt < 300){
+                    
+                    lookd= !lookd;
+                    if(lookd){
+                        mousedown((v_x-view_x)/view_zoom,(v_y-view_y)/view_zoom);
+                    }else{
+                        mouseup();                            
+                    }
+                    draw();
+                }                 
+            }else{
+                if(e.touches.length==0 && mode!=SELECT){
+                    mouseup();
+                }         
+            }  
         }
         pang = false;
         
@@ -949,11 +961,6 @@ function drawD(){
 	for(var i = 0;i<lines.length;i++){
         
 		var e = lines[i];	
-        if(e==elSel){            
-            ctx.strokeStyle = "red";
-        }else{
-            ctx.strokeStyle = "black";            
-        }
         
         ctx.strokeStyle = lcolors[e.color]; 
         ctx.lineWidth = Math.pow(2,e.linew);
@@ -1030,16 +1037,48 @@ function drawD(){
 	ctx.restore();
 	
     if(lookm){
-        ctx.strokeStyle = "#333";
         ctx.beginPath();
-        ctx.moveTo(v_x-10,v_y);
-        ctx.lineTo(v_x-3,v_y);
-        ctx.moveTo(v_x+10,v_y);
-        ctx.lineTo(v_x+3,v_y);        
-        ctx.moveTo(v_x,v_y -10);
-        ctx.lineTo(v_x,v_y -3 );
-        ctx.moveTo(v_x,v_y +10);
-        ctx.lineTo(v_x,v_y +3 );
+        if(lookd){
+            ctx.fillStyle = "#f44";
+            ctx.lineWidth=2;
+            ctx.moveTo(v_x-6,v_y);
+            ctx.lineTo(v_x,v_y-6);
+            ctx.lineTo(v_x+6,v_y);
+            ctx.lineTo(v_x,v_y+6);
+            ctx.lineTo(v_x-6,v_y);
+        }else{
+            ctx.fillStyle = "#d44";
+            
+            ctx.moveTo(v_x-3,v_y-10);
+            ctx.lineTo(v_x+3,v_y-10);
+            ctx.lineTo(v_x  ,v_y-3 );            
+            ctx.moveTo(v_x-3,v_y+10);
+            ctx.lineTo(v_x+3,v_y+10);
+            ctx.lineTo(v_x  ,v_y+3 );
+            
+            ctx.moveTo(v_x-10,v_y-3);
+            ctx.lineTo(v_x-10,v_y+3);
+            ctx.lineTo(v_x-3 ,v_y  );            
+            ctx.moveTo(v_x+10,v_y-3);
+            ctx.lineTo(v_x+10,v_y+3);
+            ctx.lineTo(v_x+3 ,v_y  );
+            
+            /*ctx.moveTo(v_x-10,v_y);
+            ctx.lineTo(v_x-3,v_y);
+            ctx.moveTo(v_x+10,v_y);
+            ctx.lineTo(v_x+3,v_y);        
+            ctx.moveTo(v_x,v_y -10);
+            ctx.lineTo(v_x,v_y -3 );
+            ctx.moveTo(v_x,v_y +10);
+            ctx.lineTo(v_x,v_y +3 ); */
+
+        }
+        ctx.globalAlpha=0.9;
+        ctx.lineWidth=1;
+        ctx.fill();	
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth=1;
         ctx.stroke();	
+        ctx.globalAlpha=1;
     }
 }
