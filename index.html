@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<head> 		
+		<link rel="stylesheet" href="css/app.css">
+		
+		<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="js/crypt.js"></script>
+		<script type="text/javascript" src="js/app.js"></script>
+	</head>
+	<body  onload="init();">
+		
+		
+		<canvas id="canvas" width="150" height="150"></canvas>
+        <div class="vtoolbar-right">
+            <div id="mouse-emu">            
+                <div class="vtoolbar-item" id="lookm">
+                    <img src="img/look.png" class="vtoolbar-content">
+                </div>       
+                <div class="vtoolbar-item" id="lookd">
+                    <img src="img/mousel.png" class="vtoolbar-content">
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="vtoolbar">
+            <div id="file-tools">            
+                <div class="vtoolbar-item">
+                    <img src="img/upload.png" id="upload" class="vtoolbar-content">
+                </div>       
+                <div class="vtoolbar-item">
+                    <img src="img/download.png" id="download" class="vtoolbar-content">
+                </div>
+            </div>
+            <div class="vtoolbar-item" id="adds">
+                <img src="img/rect.png" class="vtoolbar-content">
+            </div>
+            <div class="vtoolbar-item" id="addl">
+                <img src="img/line.png" class="vtoolbar-content">
+            </div>
+            
+            <div id="object-tools">            
+                <div class="vtoolbar-item" id="props">
+                    <img src="img/edit.png" class="vtoolbar-content">
+                </div>        
+                <div class="vtoolbar-item" id="del">
+                    <img src="img/del.png" class="vtoolbar-content">
+                </div>
+            </div>
+            
+            <div id="line-tools">            
+                <div class="vtoolbar-item" id="addp">
+                    <img src="img/adddp.png" class="vtoolbar-content">
+                </div>        
+                <div class="vtoolbar-item" id="delp">
+                    <img src="img/deldp.png" class="vtoolbar-content">
+                </div>
+            </div>
+        </div>
+        <div id="shapeEdit" class="modal" hidden>
+            <div id="modalContent" class="modal-content">
+                <span class="close">&times;</span>
+                <input id="otext" class="modal-text">                
+                 <table class="chang">
+                    <tr>
+                        <td class="ccell"></td>
+                        <td class="ccell"><button id="eip" class="ccell">I-</button></td>
+                        <td class="ccell"></td>
+                    </tr>
+                    <tr>
+                        <td class="ccell"><button id="ecp" class="ccell">C-</button></td>
+                        <td class="ccell"><canvas id="opreview" width=100 height=100></canvas></td>
+                        <td class="ccell"><button id="ecn" class="ccell">C+</button></td>
+                    </tr>
+                    <tr>
+                        <td class="ccell"></td>
+                        <td class="ccell"><button id="ein" class="ccell">I+</button></td>
+                        <td class="ccell"></td>
+                    </tr>
+                </table> 
+                <button class="ok" id="oset">OK</button>                
+            </div>
+        </div>
+
+        <div id="lineEdit" class="modal" hidden>
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <input id="lara" class ="lchange" type="checkbox">      
+                <input id="larb" class ="lchange" type="checkbox">                          
+                <table class="chang">
+                    <tr>
+                        <td class="ccell"></td>
+                        <td class="ccell"><button id="lip" class="ccell">I-</button></td>
+                        <td class="ccell"></td>
+                    </tr>
+                    <tr>
+                        <td class="ccell"><button id="lcp" class="ccell">C-</button></td>
+                        <td class="ccell"><canvas id="lpreview" width=100 height=100></canvas></td>
+                        <td class="ccell"><button id="lcn" class="ccell">C+</button></td>
+                    </tr>
+                    <tr>
+                        <td class="ccell"></td>
+                        <td class="ccell"><button id="lin" class="ccell">I+</button></td>
+                        <td class="ccell"></td>
+                    </tr>
+                </table> 
+                <button class="ok" id="lset">OK</button>                
+            </div>
+        </div>
+
+
+
+        <div id="uploadD" class="modal" hidden>
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                K:<input id="ukeyw" type="password"  class="modal-text">
+                <button class="ok" id="dupload">OK</button>                
+            </div>
+        </div>
+
+				
+
+        <div id="downloadD" class="modal" hidden>
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                D:<textarea id="ddata"></textarea>
+                K:<input id="dkeyw" type="password" class="modal-text">
+                <button class="ok" id="ddownload">OK</button>                
+            </div>
+        </div>
+
+        <div id="uploadD2" class="modal" hidden>
+            <div class="modal-content">
+                almost ready
+                <button class="ok" id="dupload2">OK</button>                
+            </div>
+        </div>
+        
+		<script>
+			
+			
+			$("#crypt").click(function(){
+				
+				str_encrypt($("#text").val(), $("#key").val(),
+					function(s){
+						$("#text").val(s);
+					}
+				);
+				
+			});
+			$("#decrypt").click(function(){
+				str_decrypt($("#text").val(), $("#key").val(),
+					function(s){
+						$("#text").val(s);
+					}
+				);		
+				
+			});
+		</script>
+	</body>
+</html>
