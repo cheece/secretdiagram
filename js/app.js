@@ -166,6 +166,12 @@ var lx,ly;
 var elSel=null;
 var pSel=null;
 
+function showMessage(s){
+	$("#mess").text(s);
+	//$("#messc").show();	
+	$("#messc").fadeIn(200).delay(500).fadeOut(200);
+}
+
 var prevp;
 function shapeBelow(x,y){
     var es=null;
@@ -760,6 +766,7 @@ function init(){
             var successful = document.execCommand('copy');
             var msg = successful ? 'successful' : 'unsuccessful';
             console.log('Fallback: Copying text command was ' + msg);
+            showMessage("copied to clipboard");
         } catch (err) {
             console.error('Fallback: Oops, unable to copy', err);
         }
