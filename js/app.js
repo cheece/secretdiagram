@@ -211,8 +211,8 @@ function exportDiagram(k, cb){
 var canvas = null;
 var ctx = null;
 
-var colors = ["#faa","#afa","#aaf","#ff7"];
-var lcolors = ["black","red","green","blue"];
+var colors = ["#faa","#afa","#aaf","#ff7","#aaa","#faf","#aff"];
+var lcolors = ["black","red","green","blue","#f0f","#0ff","#ff0"];
 
 var remim;
 
@@ -253,7 +253,7 @@ function showMessage(s){
 var prevp;
 function shapeBelow(x,y){
     var es=null;
-	for(var i = 0;es==null && i<elements.length;i++){
+	for(var i = elements.length-1;es==null && i>=0;i--){
 		var el = elements[i];	
         if(x> el.x-el.w/2 && x< el.x+el.w/2 &&
            y> el.y-el.h/2 && y< el.y+el.h/2){
