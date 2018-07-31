@@ -4,6 +4,75 @@ const LINE=1;
 var v_x=0;
 var v_y=0;
 
+function Rect(){
+	this.border = function(x,y){
+		if(Math.abs(Math.abs(x)-1) < Math.abs(Math.abs(y)-1)){
+			return new Point((x<0)?-1:1, Math.min(1,Math.max(-1,y)));
+		}else{
+			return new Point(Math.min(1,Math.max(-1,x)),(y<0)?-1:1);			
+		}		
+	}
+	this.fill = function(ctx,x,y,w,h){
+        ctx.fillRect(x,y, w,h);
+	}
+}
+function Ellipse(){
+	this.border = function(x,y){
+		var l = Math.sqrt(x*x + y*y);
+		return new Point(x/l,y/l);		
+	}
+	this.fill = function(ctx,x,y,w,h){
+		ctx.save();
+		ctx.translate(x+w/2,y+h/2);
+		ctx.scale(w/2,h/2);
+		ctx.beginPath();
+        ctx.arc(0, 0, 1, 0, Math.PI *2, 0);
+		ctx.fill();
+		ctx.restore();
+	}
+}
+function Polygon(points){
+	this.border = function(x,y){
+		var ml = 1000000000;
+		var spx,spy;
+		for(var i =0;i<points.length;i+=2){
+			var ax = points[i];var ay = points[i+1];
+			var vx = points[(i+2)%points.length]-ax;var vy = points[(i+3)%points.length]-ay;
+			var dx = (x-ax);var dy = y-ay;
+			var t = Math.min(1, Math.max(0,(dx*vx+dy*vy)/(vx*vx+vy*vy)));
+			var px = ax+vx*t;var py = ay+vy*t;
+			var l = (px-x)*(px-x) + (py-y)*(py-y);
+			if(l < ml){
+				ml = l;
+				spx = px;
+				spy = py;
+			}
+		}		
+		return new Point(spx,spy);		
+	}
+	this.fill = function(ctx,x,y,w,h){
+		ctx.save();
+		ctx.translate(x+w/2,y+h/2);
+		ctx.scale(w/2,h/2);
+		ctx.beginPath();
+		ctx.moveTo(points[0],points[1]);
+		for(var i =0;i<points.length;i+=2){
+			ctx.lineTo(points[(i+2)%points.length],points[(i+3)%points.length]);
+		}
+		ctx.fill();
+		ctx.restore();
+	}
+}
+
+
+var shapes = [
+	new Rect(),
+	new Ellipse(),
+	new Polygon([0,-1,1,0,0,1,-1,0]),
+	new Polygon([-0.6,-1,  1,-1,  0.6,1,  -1,1]),
+	new Polygon([-0.7,-1,  0.7,-1,  1,1,  -1,1])
+]; 
+
 function Point(x,y){
     this.x=x;
     this.y=y;
@@ -18,6 +87,18 @@ function Shape(iid, col, x,y,w,h){
     this.h = h;
     this.type = SHAPE;
 }
+
+
+function correctAB(line){
+	var ma = shapes[line.a.imageid].border(line.pax, line.pay);
+	line.pax = ma.x;
+	line.pay = ma.y;
+	
+	var mb = shapes[line.b.imageid].border( line.pbx, line.pby);
+	line.pbx = mb.x;
+	line.pby = mb.y;
+}
+
 function Line(a,b,pax,pay,pbx,pby,points,col, dash, arr0,arr1){
     this.a = a;
     this.b = b;
@@ -35,9 +116,8 @@ function Line(a,b,pax,pay,pbx,pby,points,col, dash, arr0,arr1){
     this.color=0;
 }
 
-var elements = [new Shape(2,2,60,78,30,30),
-						new Shape(2,1,60,178,30,30) ];
-var lines = [new Line(elements[0],elements[1],-0.8,0,0,-1,[new Point(65,110)],0,false,true,true)];
+var elements = [];
+var lines = [];
 
 
 function importDiagram(k, str){
@@ -57,6 +137,7 @@ function importDiagram(k, str){
                 e.type=LINE;
                 e.a = elements[e.a];
                 e.b = elements[e.b];
+                correctAB(e);
             }
             draw();
         }
@@ -130,11 +211,8 @@ function exportDiagram(k, cb){
 var canvas = null;
 var ctx = null;
 
-var images = ["rect", "circle", "trapezoid","diamond"]
 var colors = ["#faa","#afa","#aaf","#ff7"];
 var lcolors = ["black","red","green","blue"];
-
-var cimages = [];
 
 var remim;
 
@@ -333,13 +411,16 @@ function mousemove(x,y){
     draw();
 }
 function mouseup(x,y){
+	if(mode==MOVE_A || mode==MOVE_B){              
+        correctAB(elSel);          
+    }
     if(mode == ADD_LINE){
         
         clearButton();
         var a = shapeBelow(prevp.x,prevp.y);
         var b = shapeBelow(lx,ly);
         if(a!=null && b!=null && a!=b){
-            var l= new Line(a,b,(prevp.x-a.x)/a.w,(prevp.y-a.y)/a.h,  (lx-b.x)/b.w,(ly-b.y)/b.h,[],0,false,false,true)
+            var l= new Line(a,b,0.5*(prevp.x-a.x)/a.w,0.5*(prevp.y-a.y)/a.h,  0.5*(lx-b.x)/b.w,0.5*(ly-b.y)/b.h,[],0,false,false,true)
             lines.push(l);
             if(elSel!=null && elSel.type==LINE){
                 l.color=elSel.color;
@@ -347,6 +428,7 @@ function mouseup(x,y){
                 l.arrow0=elSel.arrow0;
                 l.arrow1=elSel.arrow1;            
             }    
+            correctAB(l);
         }
         
         prevp=null;
@@ -361,6 +443,7 @@ function mouseup(x,y){
 function loadImage(i){
 	var ii = i;				
 	var img = new Image();   // Create new img element
+	img.crossOrigin = "Anonymous";
 	img.addEventListener('load', function() {
 		/*console.log(ii);
 		context2D.drawImage(img, 0, 0);
@@ -384,8 +467,19 @@ function loadImage(i){
         
 		
 		cimages[ii] = img;
-		
-		
+		//console.log(img.width,img.height);
+		var ocanvas = document.getElementById('canvas2');
+		var octx = ocanvas.getContext('2d');
+		octx.clearRect(0,0,ocanvas.width,ocanvas.height);
+		octx.drawImage(img,0,0);
+		var pixel = octx.getImageData(0, 0, img.width,img.height);
+		var data = pixel.data;
+		var r = [];
+		//console.log(data);
+		for(var j=0;j<img.width*img.height;j++){
+			r.push(data[j*4+3] > 20);
+		}
+		ipixels[ii] = r;
 		/*
 		for(var j=0;j<colors.length;j++){
 			
@@ -466,12 +560,8 @@ function updatePreview(){
 	var octx = ocanvas.getContext('2d');
     octx.clearRect(0,0,ocanvas.width,ocanvas.height);
     
-    octx.drawImage(cimages[edit_image_id], 0,0,ocanvas.width,ocanvas.height);
     octx.fillStyle = colors[edit_color_id];
-    octx.globalCompositeOperation = "source-atop";
-
-    octx.fillRect(0,0, ocanvas.width,ocanvas.height);
-    octx.globalCompositeOperation = "source-over";   
+    shapes[edit_image_id].fill(octx,0,0,ocanvas.width,ocanvas.height);
     
 }
 function updateLPreview(){
@@ -505,11 +595,11 @@ function showModal(name){
 
 function setupShapeEditDialog(){
     $("#ein").click(function(){
-        edit_image_id=(edit_image_id+1)%cimages.length;
+        edit_image_id=(edit_image_id+1)%shapes.length;
         updatePreview();
     })
     $("#eip").click(function(){
-        edit_image_id=(cimages.length+edit_image_id-1)%cimages.length;
+        edit_image_id=(shapes.length+edit_image_id-1)%shapes.length;
         updatePreview();
     })
     $("#ecn").click(function(){
@@ -722,8 +812,8 @@ function setupDesktop(){
         lly=mouseY;
         if(dragg){
                     
-            view_x+= ddx/view_zoom;
-            view_y+= ddy/view_zoom;
+            view_x+= ddx;// /view_zoom;
+            view_y+= ddy;// /view_zoom;
             draw();
             return;
         }    
@@ -891,15 +981,7 @@ function init(){
     
 	canvas = document.getElementById('canvas');
 	ctx = canvas.getContext('2d');
-	remim = images.length;
 	
-	for(var i=0;i<images.length;i++){ 
-		cimages.push(null);
-	}
-
-	for(var i=0;i<images.length;i++){
-		loadImage(i);
-	}
     setupDesktop();
     if(is_touch_device()){
         setupMobile();
@@ -937,12 +1019,8 @@ function drawD(){
     ctx.textAlign  = 'center';
 	for(var i = 0;i<elements.length;i++){
 		var e = elements[i];		
-		ctx.drawImage(cimages[e.imageid], e.x-e.w/2, e.y-e.h/2, e.w, e.h);
 		ctx.fillStyle = colors[e.color];
-		ctx.globalCompositeOperation = "source-atop";
-
-		ctx.fillRect(e.x-e.w/2, e.y-e.h/2, e.w, e.h);
-		ctx.globalCompositeOperation = "source-over";
+		shapes[e.imageid].fill(ctx,e.x-e.w/2, e.y-e.h/2, e.w, e.h);
 			
         ctx.fillStyle = "black";
         ctx.fillText(e.text, e.x,e.y);
