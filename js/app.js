@@ -283,11 +283,14 @@ function mousedown(x,y){
             s.imageid=elSel.imageid;
             s.w=elSel.w;
             s.h=elSel.h;
+            s.text = elSel.text;
             
         }        
         elements.push(s);
         clearButton();
         
+        elSel = s;
+        mode = DRAG;
         draw();
         return;
     }
