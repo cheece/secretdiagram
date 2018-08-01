@@ -32,6 +32,9 @@
                 </div>       
                 <div class="vtoolbar-item">
                     <img src="img/download.png" id="download" class="vtoolbar-content">
+                </div>   
+                <div class="vtoolbar-item">
+                    <img src="img/key.png" id="lock" class="vtoolbar-content">
                 </div>
             </div>
             <div class="vtoolbar-item" id="adds">
@@ -112,49 +115,43 @@
 
 
 
-        <div id="uploadD" class="modal" hidden>
+        <div id="openD" class="modal" hidden>
             <div class="modal-content">
                 <span class="close">&times;</span>
-                password:<input id="ukeyw" type="password"  class="modal-text">
-                <button class="ok" id="dupload">OK</button>                
-            </div>
-        </div>
-
-				
-
-        <div id="downloadD" class="modal" hidden>
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <table style="width:100%;padding:5px;">
-					<tr>
-						<td>
-							data:
-						</td>
-						<td>
-							<textarea id="ddata"></textarea>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							password:
-						</td>
-						<td>
-							<input id="dkeyw" type="password" class="modal-text">
-						</td>
-					</tr>
-                </table>
-                
-                <button class="ok" id="ddownload">OK</button>                
-            </div>
-        </div>
-
-        <div id="uploadD2" class="modal" hidden>
-            <div class="modal-content">
-                almost ready
-                <button class="ok" id="dupload2">OK</button>                
+                <div>
+                <input type="file" id="ofile" name="files[]">
+                </div>       
             </div>
         </div>
         
+        <div id="passwD" class="modal" hidden>
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div>
+					<span>file locked, enter password</span>
+                </div>
+                <div>
+                password:<input id="okeyw" type="password"  class="modal-text">
+                <div class="ok" >
+					<button id="okeywd">OK</button>    
+                </div>  
+                </div>          
+            </div>
+        </div>
+        <div id="passwI" class="modal" hidden>
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div>
+					<span>enter password to lock file</span>
+                </div>
+                <div>
+                password:<input id="ikeyw" type="password"  class="modal-text">
+                <div class="ok" >
+					<button id="ikeywd">OK</button>    
+                </div>  
+                </div>          
+            </div>
+        </div>
 		<script>
 			
 			

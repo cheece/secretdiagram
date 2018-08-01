@@ -1,22 +1,3 @@
-function download(data, filename, type) {
-    var file = new Blob([data], {type: type});
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-        window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-        var a = document.createElement("a"),
-                url = URL.createObjectURL(file);
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);  
-        }, 0); 
-    }
-}
-
-
 const SHAPE=0;
 const LINE=1;
 
@@ -137,77 +118,9 @@ function Line(a,b,pax,pay,pbx,pby,points,col, dash, arr0,arr1){
 
 var elements = [];
 var lines = [];
-var locked = false;
 
-var password = "";
-
-function encodeDiagram(k,cb){
-    var js = {shapes:[], lines:[]};
-    
-    for(var i=0;i<elements.length;i++){
-        var e=elements[i];
-        e.index=i;
-        js.shapes.push({
-           text:e.text,
-           color:e.color,
-           imageid:e.imageid,
-           x:e.x,
-           y:e.y,
-           w:e.w,
-           h:e.h
-        });
-    }
-    for(var i=0;i<lines.length;i++){
-        var e=lines[i];
-        var points=[];
-        for(var j=0;j<e.points.length;j++)
-            points.push({x:e.points[j].x,y:e.points[j].y});
-        js.lines.push({
-            a:e.a.index,
-            b:e.b.index,
-            pax    :e.pax    ,
-            pbx    :e.pbx    ,
-            pay    :e.pay    ,
-            pby    :e.pby    ,
-            points :e.points ,
-            color  :e.color  ,
-            dash   :e.dash   ,
-            arrow0 :e.arrow0 ,
-            arrow1 :e.arrow1 ,
-            type   :e.type   ,
-            linew  :e.linew  ,
-            color  :e.color 
-        });
-    }
-    var ss = JSON.stringify(js);
-    b_encrypt(str2ab(ss), k,
-        function(s){          
-            cb(s);            
-        }
-    );
-}
-function decodeDiagram(k, bs,cb){
-    elSel=null;
-    b_decrypt(bs, k,
-        function(b){
-			var s = ab2str(b);
-            var js = JSON.parse(s);
-            elements=js.shapes;
-            lines=js.lines;
-            for(var i=0;i<elements.length;i++){
-                var e=elements[i];
-                e.type=SHAPE;
-            }
-            for(var i=0;i<lines.length;i++){
-                var e=lines[i];
-                e.type=LINE;
-                e.a = elements[e.a];
-                e.b = elements[e.b];
-                correctAB(e);
-            }
-            draw();
-        }
-    );
+function encodeDiagram(k){
+	
 }
 
 
@@ -279,36 +192,6 @@ function exportDiagram(k, cb){
         }
     );
 }
-var changed = false;
-var saveInterval = 2000;
-
-function lock(){
-	showModal("#passwD");//
-	$("#okeyw").focus();
-}
-
-function openDiagram(){
-	if(localStorage.getItem("upass")!="false"){
-		lock();
-	}else{
-		password = "";
-		console.log(localStorage.getItem("saved"));
-		importDiagram("", localStorage.getItem("saved"));
-	}
-}
-
-function saveDiagram(sing){
-	if(password!=null && changed){
-		changed = false;
-		exportDiagram(password, function(bs){
-			localStorage.setItem("saved", bs);
-			localStorage.setItem("upass", password!="");
-			console.log("saved diagram");
-		});		
-	}	
-	if(!sing)setTimeout(saveDiagram,saveInterval);
-}
-
 /*
  *  
             var textArea = document.createElement("textarea");
@@ -504,8 +387,6 @@ function mousedown(x,y){
     if(elSel!=null && elSel.type == SHAPE){     
         mode = DRAG;            
     }    
-    if(mode!=SELECT)
-		changed=true;
 	console.log("md");
 	draw();
 }
@@ -534,8 +415,6 @@ function mousemove(x,y){
     	
     lx=x;
     ly=y;
-    if(mode!=SELECT)
-		changed=true;
     draw();
 }
 function mouseup(x,y){
@@ -563,8 +442,6 @@ function mouseup(x,y){
             
         
     }
-    if(mode!=SELECT)
-		changed=true;
     mode = SELECT;
     draw();
 }
@@ -973,12 +850,10 @@ function setupDesktop(){
 var lookm=false;
 var lookd=false;
 function init(){
-	openDiagram();
-    saveDiagram();
+    
     $("#upload").click(function(){
-		exportDiagram(password,function(s){
-			download(s, "diagram.sdi", "text/plain");
-		});
+        showModal("#uploadD");//
+        $("#ukeyw").focus();
     });
     var cmpr;
     /*$("#dupload").click(function(){
@@ -1008,43 +883,13 @@ function init(){
         document.body.removeChild(textArea); 
         $(modal).hide();
     });*/
-    
     $("#ofile").on("change", function(evt){
-		//console.log(evt.target.files);
-        $(modal).hide();
-		if(evt.target.files.length>0){
-			var reader = new FileReader();
-			//password = null;
-			reader.onload = function(e){
-				//console.log(e.target.result);
-				localStorage.setItem("saved", e.target.result);
-				localStorage.setItem("upass", "true");
-				lock();				
-			}
-			reader.readAsText(evt.target.files[0]);			
-		}
+		console.log(evt.target);
 	});
-    $("#okeywd").click(function(){
-		password = $("#okeyw").val();
-		importDiagram(password, localStorage.getItem("saved"));
-		changed = false;
-        $(modal).hide();
-    });
 	
     $("#download").click(function(){
         showModal("#openD");
     });
-    $("#lock").click(function(){
-        showModal("#passwI");
-		$("#ikeyw").focus();
-    });
-    $("#ikeywd").click(function(){
-		password = $("#ikeyw").val();
-		changed = true;
-		saveDiagram(true);
-		$(modal).hide();
-    });
-    
    /* $('#ddata').on('paste', function () {
         setTimeout(function(){
             $("#dkeyw").focus();

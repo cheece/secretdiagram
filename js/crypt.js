@@ -107,3 +107,55 @@ function str_decrypt(str, pass,cb){
 	});		
 }
 
+function b_encrypt(bs, pass,cb){
+	if(pass=="")
+		pass = "666";
+		
+	genkey(pass,function(key){
+		window.crypto.subtle.encrypt(
+			{
+				name: "AES-CBC",
+				//Don't re-use initialization vectors!
+				//Always generate a new iv every time your encrypt!
+				iv: sal,
+			},
+			key, //from generateKey or importKey above
+			bs //ArrayBuffer of data you want to encrypt
+		)
+		.then(function(encrypted){
+			//returns an ArrayBuffer containing the encrypted data
+			cb(encrypted);
+			//console.log(cr2str(encrypted));//new Uint8Array(encrypted));
+		})
+		.catch(function(err){
+			console.error(err);
+		});
+		
+	});	
+}
+
+function b_decrypt(buffer, pass,cb){
+	if(pass=="")
+		pass = "666";
+		
+	genkey(pass,function(key){
+		console.log(buffer);
+		console.log(typeof(buffer));
+		window.crypto.subtle.decrypt(
+			{
+				name: "AES-CBC",
+				iv: sal, //The initialization vector you used to encrypt
+			},
+			key, //from generateKey or importKey above
+			buffer //ArrayBuffer of the data
+		)
+		.then(function(decrypted){
+			//returns an ArrayBuffer containing the decrypted data
+			cb(decrypted);
+		})
+		.catch(function(err){
+			console.error(err);
+		});
+	});		
+}
+
