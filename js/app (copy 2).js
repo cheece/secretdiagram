@@ -24,7 +24,6 @@ var v_x=0;
 var v_y=0;
 
 function Rect(){
-		
 	this.border = function(x,y){
 		if(Math.abs(Math.abs(x)-1) < Math.abs(Math.abs(y)-1)){
 			return new Point((x<0)?-1:1, Math.min(1,Math.max(-1,y)));
@@ -41,11 +40,6 @@ function Ellipse(){
 		var l = Math.sqrt(x*x + y*y);
 		return new Point(x/l,y/l);		
 	}
-	this.normal = function(x,y){
-		var l = Math.sqrt(x*x + y*y);
-		return new Point(x/l,y/l);		
-	}
-	
 	this.fill = function(ctx,x,y,w,h){
 		ctx.save();
 		ctx.translate(x+w/2,y+h/2);
@@ -111,7 +105,6 @@ function Shape(iid, col, x,y,w,h){
     this.text= "shape";
     this.h = h;
     this.type = SHAPE;
-    this.sub = null;
 }
 
 
@@ -142,150 +135,14 @@ function Line(a,b,pax,pay,pbx,pby,points,col, dash, arr0,arr1){
     this.color=0;
 }
 
-var citem=null;
 var elements = [];
 var lines = [];
-
-var current = {
-	elements:elements,
-	lines:lines,
-	parent:null
-};
-
 var locked = false;
 
 var password = "";
 
-function diagramToJSON(d){
-	var elements = d.elements;
-	var lines = d.lines;
-	
-	var js = {shapes:[], lines:[]};
-    
-    for(var i=0;i<elements.length;i++){
-        var e=elements[i];
-        e.index=i;
-        var ji = {
-           text:e.text,
-           color:e.color,
-           imageid:e.imageid,
-           x:e.x,
-           y:e.y,
-           w:e.w,
-           h:e.h
-        };
-        if(e.sub!=null){
-			ji.sub = diagramToJSON(e.sub);
-		}
-        js.shapes.push(ji);
-    }
-    for(var i=0;i<lines.length;i++){
-        var e=lines[i];
-        var points=[];
-        for(var j=0;j<e.points.length;j++)
-            points.push({x:e.points[j].x,y:e.points[j].y});
-        js.lines.push({
-            a:e.a.index,
-            b:e.b.index,
-            pax    :e.pax    ,
-            pbx    :e.pbx    ,
-            pay    :e.pay    ,
-            pby    :e.pby    ,
-            points :e.points ,
-            color  :e.color  ,
-            dash   :e.dash   ,
-            arrow0 :e.arrow0 ,
-            arrow1 :e.arrow1 ,
-            type   :e.type   ,
-            linew  :e.linew  ,
-            color  :e.color 
-        });
-    }
-    return js;
-}
 function encodeDiagram(k,cb){
-    
-    var ss = JSON.stringify(diagramToJSON(current));
-    b_encrypt(str2ab(ss), k,
-        function(s){          
-            cb(s);            
-        }
-    );
-}
-function diagramFromJSON(js){
-	var c = {};
-	c.elements=js.shapes;
-	c.lines=js.lines;
-	for(var i=0;i<c.elements.length;i++){
-		var e=c.elements[i];
-		e.type=SHAPE;
-		if("sub" in e){
-			e.sub = diagramFromJSON(e.sub);
-			e.sub.parent = c;
-		}
-	}
-	for(var i=0;i<c.lines.length;i++){
-		var e=c.lines[i];
-		e.type=LINE;
-		e.a = c.elements[e.a];
-		e.b = c.elements[e.b];
-		correctAB(e);
-	}
-	return c;
-}
-function decodeDiagram(k, bs,cb){
-    elSel=null;
-    b_decrypt(bs, k,
-        function(b){
-			var s = ab2str(b);
-            var js = JSON.parse(s);
-            setDiagram(diagramFromJSON(js));
-        }
-    );
-}
-
-function setDiagram(c){
-	
-	lines = c.lines;
-	elements = c.elements;
-	citem = c;
-	view_zoom = 1;
-	view_x = 0;
-	view_y = 0;
-	draw();
-	console.log("diagram enter ", lines.length,elements.length);
-}
-
-function importDiagram(k, str){
-	console.log("importing diagram");
-    str= str.trim();
-    elSel=null;
-    str_decrypt(str, k,
-        function(s){
-            var js = JSON.parse(s);
-			console.log("diagram js: ",js);
-            setDiagram(diagramFromJSON(js));
-            current = citem;
-           /* elements=js.shapes;
-            lines=js.lines;
-            for(var i=0;i<elements.length;i++){
-                var e=elements[i];
-                e.type=SHAPE;
-            }
-            for(var i=0;i<lines.length;i++){
-                var e=lines[i];
-                e.type=LINE;
-                e.a = elements[e.a];
-                e.b = elements[e.b];
-                correctAB(e);
-            }
-            draw();*/
-        }
-    );
-}
-function exportDiagram(k, cb){
-	console.log(current);
-    var js = diagramToJSON(current); /*{shapes:[], lines:[]};
+    var js = {shapes:[], lines:[]};
     
     for(var i=0;i<elements.length;i++){
         var e=elements[i];
@@ -321,7 +178,100 @@ function exportDiagram(k, cb){
             linew  :e.linew  ,
             color  :e.color 
         });
-    }*/
+    }
+    var ss = JSON.stringify(js);
+    b_encrypt(str2ab(ss), k,
+        function(s){          
+            cb(s);            
+        }
+    );
+}
+function decodeDiagram(k, bs,cb){
+    elSel=null;
+    b_decrypt(bs, k,
+        function(b){
+			var s = ab2str(b);
+            var js = JSON.parse(s);
+            elements=js.shapes;
+            lines=js.lines;
+            for(var i=0;i<elements.length;i++){
+                var e=elements[i];
+                e.type=SHAPE;
+            }
+            for(var i=0;i<lines.length;i++){
+                var e=lines[i];
+                e.type=LINE;
+                e.a = elements[e.a];
+                e.b = elements[e.b];
+                correctAB(e);
+            }
+            draw();
+        }
+    );
+}
+
+
+function importDiagram(k, str){
+    str= str.trim();
+    elSel=null;
+    str_decrypt(str, k,
+        function(s){
+            var js = JSON.parse(s);
+            elements=js.shapes;
+            lines=js.lines;
+            for(var i=0;i<elements.length;i++){
+                var e=elements[i];
+                e.type=SHAPE;
+            }
+            for(var i=0;i<lines.length;i++){
+                var e=lines[i];
+                e.type=LINE;
+                e.a = elements[e.a];
+                e.b = elements[e.b];
+                correctAB(e);
+            }
+            draw();
+        }
+    );
+}
+function exportDiagram(k, cb){
+    var js = {shapes:[], lines:[]};
+    
+    for(var i=0;i<elements.length;i++){
+        var e=elements[i];
+        e.index=i;
+        js.shapes.push({
+           text:e.text,
+           color:e.color,
+           imageid:e.imageid,
+           x:e.x,
+           y:e.y,
+           w:e.w,
+           h:e.h
+        });
+    }
+    for(var i=0;i<lines.length;i++){
+        var e=lines[i];
+        var points=[];
+        for(var j=0;j<e.points.length;j++)
+            points.push({x:e.points[j].x,y:e.points[j].y});
+        js.lines.push({
+            a:e.a.index,
+            b:e.b.index,
+            pax    :e.pax    ,
+            pbx    :e.pbx    ,
+            pay    :e.pay    ,
+            pby    :e.pby    ,
+            points :e.points ,
+            color  :e.color  ,
+            dash   :e.dash   ,
+            arrow0 :e.arrow0 ,
+            arrow1 :e.arrow1 ,
+            type   :e.type   ,
+            linew  :e.linew  ,
+            color  :e.color 
+        });
+    }
     var ss = JSON.stringify(js);
     str_encrypt(ss, k,
         function(s){          
@@ -344,7 +294,6 @@ function openDiagram(){
 		password = "";
 		console.log(localStorage.getItem("saved"));
 		importDiagram("", localStorage.getItem("saved")||"");
-		
 	}
 }
 
@@ -1031,20 +980,6 @@ function init(){
 			download(s, "diagram.sdi", "text/plain");
 		});
     });
-    $("#enterg").click(function(){
-		if(elSel!=null && elSel.type == SHAPE){
-			if(elSel.sub==null || elSel.sub==undefined)
-				elSel.sub = {parent:citem,elements:[],lines:[]};
-			
-			setDiagram(elSel.sub);
-		}
-    });
-    $("#exitg").click(function(){
-		if(citem.parent!=null && citem.parent!=undefined){
-			setDiagram(citem.parent);
-		}
-    });
-    
     var cmpr;
     /*$("#dupload").click(function(){
         exportDiagram($("#ukeyw").val(),function(s){
@@ -1251,24 +1186,11 @@ function drawD(){
 		var e = elements[i];		
 		ctx.fillStyle = colors[e.color];
 		shapes[e.imageid].fill(ctx,e.x-e.w/2, e.y-e.h/2, e.w, e.h);
-		if(e.sub!=null && e.sub.elements.length>0 ){
-			ctx.fillStyle="#6f6";
-			ctx.strokeStyle = "#ff66ff";
-			ctx.globalAlpha = 0.4;
-			ctx.fillRect(e.x-e.w/4 , e.y-e.h/4,e.w/2, e.h/2);
-			ctx.beginPath();
-			ctx.rect(e.x-e.w/4 , e.y-e.h/4,e.w/2, e.h/2);	
-			ctx.stroke();
-
-			ctx.globalAlpha = 1;
-			ctx.strokeStyle = "red";
-		}
-		
+			
         ctx.fillStyle = "black";
         ctx.fillText(e.text, e.x,e.y);
 		
 		if(e==elSel){
-			ctx.beginPath();
 			ctx.setLineDash([2, 2]);
 			ctx.rect(e.x-e.w/2, e.y-e.h/2, e.w, e.h);			
 			ctx.stroke();
