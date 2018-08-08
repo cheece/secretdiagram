@@ -109,6 +109,7 @@ function Shape(iid, col, x,y,w,h){
     this.y = y;
     this.w = w;
     this.text= "shape";
+    this.tlines = null;
     this.h = h;
     this.type = SHAPE;
     this.sub = null;
@@ -879,8 +880,8 @@ function setupMobile(){
             var s = (e.touches[0].clientX-e.touches[1].clientX)*(e.touches[0].clientX-e.touches[1].clientX)
                         + (e.touches[0].clientY-e.touches[1].clientY)*(e.touches[0].clientY-e.touches[1].clientY);
             
-            view_x+= (cx-lx)/view_zoom;
-            view_y+= (cy-ly)/view_zoom;
+            view_x+= (cx-lx);
+            view_y+= (cy-ly);
             
             setZoom(sz*Math.sqrt(s/ss));
             
@@ -1137,8 +1138,10 @@ function init(){
         if(elSel.type==SHAPE){
             showModal("#shapeEdit");
             $("#otext").val(elSel.text);
+            elSel.tlines = null;
             edit_color_id= elSel.color;
             edit_image_id = elSel.imageid;
+            
             
             updatePreview();
         }else if(elSel.type ==LINE){
@@ -1247,6 +1250,7 @@ function drawD(){
 	ctx.font = '22px serif';
     ctx.textBaseline = 'middle';
     ctx.textAlign  = 'center';
+    var lh = 22;
 	for(var i = 0;i<elements.length;i++){
 		var e = elements[i];		
 		ctx.fillStyle = colors[e.color];
@@ -1263,9 +1267,16 @@ function drawD(){
 			ctx.globalAlpha = 1;
 			ctx.strokeStyle = "red";
 		}
-		
+		if(e.tlines==null)
+			e.tlines = e.text.split("\n");
         ctx.fillStyle = "black";
-        ctx.fillText(e.text, e.x,e.y);
+        var s = -lh*(e.tlines.length*0.5-0.5);
+        for(var j=0;j<e.tlines.length;j++){
+			
+			ctx.fillText(e.tlines[j], e.x,e.y+s+ lh*j);
+					
+		}
+       // ctx.fillText(e.text, e.x,e.y);
 		
 		if(e==elSel){
 			ctx.beginPath();
